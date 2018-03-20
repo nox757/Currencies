@@ -17,7 +17,7 @@ public class Console implements Iinput {
         to = null;
         try {
 
-            System.out.print("Enter from currency:\n");
+            System.out.print("\nEnter from currency:\n");
             from = TypeCurrency.valueOf(scanner.next().toUpperCase().trim());
             System.out.print("Enter to currency:\n");
             to = TypeCurrency.valueOf(scanner.next().toUpperCase().trim());

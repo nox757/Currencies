@@ -2,18 +2,20 @@ package com.chibisovap.data;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class CacheDataImpl implements  CacheData {
 
-    private final Set<String> cachedCurrencies = new HashSet<>();
+    private final Set<String> cachedCurrencies = new ConcurrentSkipListSet<>();
     private final static String FILE_NAME = "cache.txt";
     private LocalDate lastUpdate;
 
 
     @Override
     public boolean isActualCache(LocalDate date){
-        return date.isEqual(lastUpdate);
+        return lastUpdate!= null && date.isEqual(lastUpdate);
     }
 
     @Override
@@ -24,7 +26,11 @@ public class CacheDataImpl implements  CacheData {
             try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
                 line = reader.readLine();
                 if (line != null) {
-                    lastUpdate = LocalDate.parse(line);
+                    try {
+                        lastUpdate = LocalDate.parse(line);
+                    } catch (DateTimeParseException e) {
+                        return;
+                    }
                 }
                 while ((line = reader.readLine()) != null) {
                     cachedCurrencies.add(line);
@@ -45,13 +51,15 @@ public class CacheDataImpl implements  CacheData {
 
     @Override
     public void saveToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
-            writer.write(lastUpdate.toString() + System.lineSeparator());
-            for (String currency : cachedCurrencies) {
-                writer.write(currency + System.lineSeparator());
+        if (lastUpdate != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+                writer.write(lastUpdate.toString() + System.lineSeparator());
+                for (String currency : cachedCurrencies) {
+                    writer.write(currency + System.lineSeparator());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
